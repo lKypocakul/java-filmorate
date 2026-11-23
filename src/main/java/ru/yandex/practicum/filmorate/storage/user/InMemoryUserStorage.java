@@ -7,8 +7,10 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
@@ -47,5 +49,39 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public Collection<User> getAll() {
         return new ArrayList<>(users.values());
+    }
+
+    @Override
+    public void addFriend(long userId, long friendId) {
+        getExisting(userId).getFriends().add(friendId);
+    }
+
+    @Override
+    public void removeFriend(long userId, long friendId) {
+        getExisting(userId).getFriends().remove(friendId);
+    }
+
+    @Override
+    public List<User> getFriends(long userId) {
+        return getExisting(userId).getFriends().stream()
+                .map(this::getExisting)
+                .toList();
+    }
+
+    @Override
+    public List<User> getCommonFriends(long userId, long otherId) {
+        Set<Long> otherFriends = getExisting(otherId).getFriends();
+        return getExisting(userId).getFriends().stream()
+                .filter(otherFriends::contains)
+                .map(this::getExisting)
+                .toList();
+    }
+
+    private User getExisting(long id) {
+        User user = users.get(id);
+        if (user == null) {
+            throw new NotFoundException("Пользователь с id = " + id + " не найден");
+        }
+        return user;
     }
 }

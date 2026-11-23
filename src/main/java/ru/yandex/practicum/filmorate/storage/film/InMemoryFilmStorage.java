@@ -6,7 +6,9 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -47,5 +49,31 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Collection<Film> getAll() {
         return new ArrayList<>(films.values());
+    }
+
+    @Override
+    public void addLike(long filmId, long userId) {
+        getExisting(filmId).getLikes().add(userId);
+    }
+
+    @Override
+    public void removeLike(long filmId, long userId) {
+        getExisting(filmId).getLikes().remove(userId);
+    }
+
+    @Override
+    public List<Film> getPopular(int count) {
+        return films.values().stream()
+                .sorted(Comparator.comparingInt((Film film) -> film.getLikes().size()).reversed())
+                .limit(count)
+                .toList();
+    }
+
+    private Film getExisting(long id) {
+        Film film = films.get(id);
+        if (film == null) {
+            throw new NotFoundException("Фильм с id = " + id + " не найден");
+        }
+        return film;
     }
 }

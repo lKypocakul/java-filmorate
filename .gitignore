@@ -44,3 +44,5 @@ build/
 
 *.db
 db/*
+# H2 database files
+db/
